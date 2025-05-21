@@ -27,8 +27,6 @@ const { auth } = require('../middleware/auth'); // Import the middleware
  *                 type: string
  *               password:
  *                 type: string
- *               role:
- *                 type: string
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -100,9 +98,6 @@ router.post("/login", loginUser);
  *                   contrasenia:
  *                     type: string
  *                     description: Contraseña encriptada del usuario
- *                   role:
- *                     type: string
- *                     description: role del usuario (admin, dueno, etc.)
  *       401:
  *         description: No autorizado (token inválido o faltante)
  *       403:
@@ -170,8 +165,6 @@ router.delete("/deleteUser",deleteUser);
  *               email:
  *                 type: string
  *               name:
- *                 type: string
- *               role:
  *                 type: string
  *     responses:
  *       200:
