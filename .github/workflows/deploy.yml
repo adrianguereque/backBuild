@@ -1,0 +1,36 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main  # Or your deployment branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'  # Adjust as needed
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Zip backend folder
+        run: |
+          rm -f backend.zip
+          zip -r backend.zip * .[^.]* -x "node_modules/*" ".env" "tests/*"
+
+      - name: Deploy to Azure via ZipDeploy
+        env:
+          AZURE_DEPLOY_USER: ${{ secrets.AZURE_DEPLOY_USER }}
+          AZURE_DEPLOY_PASSWORD: ${{ secrets.AZURE_DEPLOY_PASSWORD }}
+        run: |
+          curl -X POST "https://viba.scm.azurewebsites.net/api/zipdeploy" \
+            --user "$AZURE_DEPLOY_USER:$AZURE_DEPLOY_PASSWORD" \
+            --data-binary @"backend.zip"
