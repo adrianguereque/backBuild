@@ -32,5 +32,5 @@ jobs:
           AZURE_DEPLOY_PASSWORD: ${{ secrets.AZURE_DEPLOY_PASSWORD }}
         run: |
           curl -X POST "https://viba.scm.azurewebsites.net/api/zipdeploy" \
-            --user "$AZURE_DEPLOY_USER:$AZURE_DEPLOY_PASSWORD" \
+            --user "\$AZURE_DEPLOY_USER:AZURE_DEPLOY_PASSWORD" \
             --data-binary @"backend.zip"
