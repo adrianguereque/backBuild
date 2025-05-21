@@ -23,8 +23,8 @@ jobs:
 
       - name: Zip backend folder
         run: |
-          rm -f backend.zip
-          zip -r backend.zip * .[^.]* -x "node_modules/*" ".env" "tests/*"
+          rm -f backend2.zip
+          zip -r backend2.zip * .[^.]* -x "node_modules/*" ".env" "tests/*"
 
       - name: Deploy to Azure via ZipDeploy
         env:
@@ -33,4 +33,4 @@ jobs:
         run: |
           curl -X POST "https://viba.scm.azurewebsites.net/api/zipdeploy" \
             --user "\$AZURE_DEPLOY_USER:AZURE_DEPLOY_PASSWORD" \
-            --data-binary @"backend.zip"
+            --data-binary @"backend2.zip"
