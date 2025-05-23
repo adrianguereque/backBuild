@@ -8,11 +8,23 @@ const userRoutes = require("./routes/users");
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://adrianguereque.github.io"
+];
+
 const corsOptions = {
-    origin: "http://localhost:5173", // Your frontend's origin
-    methods: "GET,POST,PUT,DELETE",             // Specify methods you want to allow
-    credentials: true,               // Allow credentials (cookies)
-  };
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true,
+};
+
 
 app.use(cookieParser()); 
 

@@ -66,8 +66,8 @@ const loginUser = async (req, res) => {
 
     res.cookie("Auth", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
+      secure: true, // must be true for SameSite: 'None'
+      sameSite: "None", // allow cross-site cookies
       maxAge: 3600000
     });
 
@@ -76,10 +76,11 @@ const loginUser = async (req, res) => {
       name: user.name
     }), {
       httpOnly: false,
-      secure: false,
-      sameSite: "Lax",
+      secure: true, // 🔒
+      sameSite: "None", // 🌐
       maxAge: 3600000
     });
+
 
     res.json({ message: "Login successful" });
   } catch (err) {
