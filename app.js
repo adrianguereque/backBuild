@@ -10,7 +10,9 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://adrianguereque.github.io"
+  "https://adrianguereque.github.io",
+  "http://localhost:5000",
+  "https://victorious-ocean-0be8d1c10.6.azurestaticapps.net"
 ];
 
 const corsOptions = {

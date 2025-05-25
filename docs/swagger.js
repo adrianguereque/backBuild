@@ -1,8 +1,6 @@
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
-const PORT = process.env.BACK_PORT || 5000; 
-
 const options = {
   definition: {
     openapi: "3.0.0",

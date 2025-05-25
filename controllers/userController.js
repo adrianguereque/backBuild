@@ -42,7 +42,7 @@ const loginUser = async (req, res) => {
     const result = await pool.request()
       .input("email", sql.VarChar, email)
       .query(`
-        SELECT email, name, password
+        SELECT email, name, password, id
         FROM UsersAdrian
         WHERE email = @email
       `);
@@ -59,7 +59,7 @@ const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { email: user.email },
+      { email: user.email, id: user.id },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -76,11 +76,10 @@ const loginUser = async (req, res) => {
       name: user.name
     }), {
       httpOnly: false,
-      secure: true, // 🔒
-      sameSite: "None", // 🌐
+      secure: true, // 
+      sameSite: "None", // 
       maxAge: 3600000
     });
-
 
     res.json({ message: "Login successful" });
   } catch (err) {
@@ -111,18 +110,17 @@ const getUsers = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: "Email is required" });
-  }
+  const { id } = req.params;
 
   try {
     const pool = await connectDB();
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .query("DELETE FROM UsersAdrian WHERE id = @id");
 
-    await pool.request()
-      .input("email", sql.VarChar, email)
-      .query("DELETE FROM UsersAdrian WHERE email = @email");
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {
@@ -132,23 +130,41 @@ const deleteUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { email, name } = req.body;
+  const { id } = req.params;
+  const { name, email, password } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ error: "Email is required" });
+  if (!name && !email && !password) {
+    return res.status(400).json({ error: "At least one field (name, email, or password) must be provided" });
   }
 
   try {
     const pool = await connectDB();
 
-    await pool.request()
-      .input("email", sql.VarChar, email)
-      .input("name", sql.VarChar, name)
-      .query(`
-        UPDATE UsersAdrian
-        SET name = @name
-        WHERE email = @email
-      `);
+    let updateFields = [];
+    if (name) updateFields.push("name = @name");
+    if (email) updateFields.push("email = @email");
+    if (password) updateFields.push("password = @password"); // In production, hash this!
+
+    const query = `
+      UPDATE UsersAdrian
+      SET ${updateFields.join(", ")}
+      WHERE id = @id
+    `;
+
+    const request = pool.request().input("id", sql.Int, id);
+    if (name) request.input("name", sql.VarChar, name);
+    if (email) request.input("email", sql.VarChar, email);
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      request.input("password", sql.VarChar, hashedPassword);
+    }
+
+
+    const result = await request.query(query);
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     res.status(200).json({ message: "User updated successfully" });
   } catch (err) {
@@ -166,7 +182,43 @@ const getSession = async (req, res) => {
 
 const logoutUser = async (req, res) => {
   res.clearCookie("Auth", { path: "/", httpOnly: true, secure: false, sameSite: "Lax" });
+  res.clearCookie("UserData", { path: "/", httpOnly: false, secure: true, sameSite: "None" });
+
   res.status(200).json({ message: "Logged out successfully" });
+};
+
+const updateUserMe = async (req, res) => {
+  const token = req.cookies?.Auth;
+
+  if (!token) {
+    return res.status(401).json({ message: "No autenticado" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.params.id = decoded.id; // Inject into req.params for reuse
+    await updateUser(req, res); // Reuse main update function
+  } catch (error) {
+    console.error("Token inválido:", error);
+    res.status(401).json({ message: "Token inválido o expirado" });
+  }
+};
+
+const deleteUserMe = async (req, res) => {
+  const token = req.cookies?.Auth;
+
+  if (!token) {
+    return res.status(401).json({ message: "No autenticado" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.params.id = decoded.id; 
+    await deleteUser(req, res); 
+  } catch (error) {
+    console.error("Token inválido:", error);
+    res.status(401).json({ message: "Token inválido o expirado" });
+  }
 };
 
 module.exports = {
@@ -176,5 +228,7 @@ module.exports = {
   getSession,
   logoutUser,
   deleteUser,
-  updateUser
+  updateUser,
+  updateUserMe,
+  deleteUserMe
 };

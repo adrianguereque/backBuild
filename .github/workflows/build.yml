@@ -20,5 +20,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: eslint
+        run: npx eslint
+
       - name: Build app (if applicable)
         run: npm run build

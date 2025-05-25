@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser, loginUser, getUsers, getSession, logoutUser, deleteUser, updateUser } = require("../controllers/userController");
+const { registerUser, loginUser, getUsers, getSession, logoutUser, deleteUser, updateUser, updateUserMe, deleteUserMe } = require("../controllers/userController");
 const router = express.Router();
 
 const { auth } = require('../middleware/auth'); // Import the middleware
@@ -107,75 +107,158 @@ router.post("/login", loginUser);
  */
 
 // router.get("/getUsers", auth(["admin", "dueno"]), getUsers);
-router.get("/getUsers", getUsers);
+router.get("/getUsers", auth(), getUsers);
 
+/**
+ * @swagger
+ * /users/getSession:
+ *   get:
+ *     summary: Get current session token
+ *     description: Returns the JWT token from the Auth cookie if authenticated
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Authenticated session
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT token
+ *       401:
+ *         description: Not authenticated (missing or invalid Auth cookie)
+ */
 
-router.get("/getSession", getSession)
+router.get("/getSession", auth(), getSession)
+
+/**
+ * @swagger
+ * /users/logoutUser:
+ *   post:
+ *     summary: Log out the current user
+ *     description: Clears the Auth cookie and ends the session
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ */
 
 router.post("/logoutUser", logoutUser)
 
 /**
  * @swagger
- * /users/deleteUser:
+ * /users/deleteUser/{id}:
  *   delete:
- *     summary: Delete a specific user
+ *     summary: Delete a specific user by ID
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *             properties:
- *               email:
- *                 type: string
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: User deleted successfully
- *       400:
- *         description: Missing email
+ *       404:
+ *         description: User not found
  *       500:
  *         description: Server error
  */
-// router.delete("/deleteUser", auth(["admin"]), deleteUser);
-router.delete("/deleteUser",deleteUser);
-
+router.delete("/deleteUser/:id", deleteUser);
 
 /**
  * @swagger
- * /users/updateUser:
+ * /users/updateUser/{id}:
  *   put:
- *     summary: Update a user
+ *     summary: Update a specific user by ID
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - email
  *             properties:
+ *               name:
+ *                 type: string
  *               email:
  *                 type: string
- *               name:
+ *               password:
  *                 type: string
  *     responses:
  *       200:
  *         description: User updated successfully
  *       400:
- *         description: Missing email
+ *         description: Missing data or invalid ID
  *       500:
  *         description: Server error
  */
-// router.put("/updateUser", auth(["admin"]), updateUser);
-router.put("/updateUser", updateUser);
+router.put("/updateUser/:id", updateUser);
 
+/**
+ * @swagger
+ * /users/updateUserMe:
+ *   put:
+ *     summary: Update the currently authenticated user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Missing data
+ *       401:
+ *         description: Not authenticated or token invalid
+ *       500:
+ *         description: Server error
+ */
+
+router.put("/updateUserMe", auth(), updateUserMe);
+
+/**
+ * @swagger
+ * /users/deleteUserMe:
+ *   delete:
+ *     summary: Delete the currently authenticated user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Not authenticated or token invalid
+ *       500:
+ *         description: Server error
+ */
+
+router.delete("/deleteUserMe", auth(), deleteUserMe);
 
 module.exports = router;

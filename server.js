@@ -1,7 +1,6 @@
 require("dotenv").config();
-const { pool, connectDB } = require("./config/db"); // from your mssql-based db config
+const { connectDB } = require("./config/db"); // from your mssql-based db config
 const app = require("./app");
-const sql = require("mssql");
 
 const PORT = process.env.BACK_PORT || 5000;
 
