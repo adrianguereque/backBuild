@@ -23,5 +23,8 @@ jobs:
       - name: eslint
         run: npx eslint
 
+      - name: test (jest)
+        run: npm test
+
       - name: Build app (if applicable)
         run: npm run build
