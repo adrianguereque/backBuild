@@ -169,7 +169,7 @@ router.post("/logoutUser", logoutUser)
  *       500:
  *         description: Server error
  */
-router.delete("/deleteUser/:id", deleteUser);
+router.delete("/deleteUser/:id", auth(), deleteUser);
 
 /**
  * @swagger
@@ -206,7 +206,7 @@ router.delete("/deleteUser/:id", deleteUser);
  *       500:
  *         description: Server error
  */
-router.put("/updateUser/:id", updateUser);
+router.put("/updateUser/:id", auth(), updateUser);
 
 /**
  * @swagger
