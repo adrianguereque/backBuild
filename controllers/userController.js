@@ -93,13 +93,14 @@ const getUsers = async (req, res) => {
     const pool = await connectDB();
 
     const result = await pool.request().query(`
-      SELECT id, email, name FROM UsersAdrian
+      SELECT id, email, name, password FROM UsersAdrian
     `);
 
     const formatted = result.recordset.map(user => ({
       id: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
+      password: user.password
     }));
 
     res.status(200).json(formatted);
